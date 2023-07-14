@@ -20,7 +20,6 @@ export interface LoaderOptions extends NextraConfig {
   locales: string[]
   defaultLocale: string
   pageMapCache: PageMapCache
-  newNextLinkBehavior?: boolean
 }
 
 export interface Folder<FileType = PageMapItem> {
@@ -97,7 +96,6 @@ export type PageOpts<FrontMatterType = FrontMatter> = {
   hasJsxInH1?: boolean
   timestamp?: number
   flexsearch?: Flexsearch
-  newNextLinkBehavior?: boolean
   readingTime?: ReadingTime
 }
 

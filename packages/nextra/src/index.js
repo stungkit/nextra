@@ -55,7 +55,6 @@ const nextra = (themeOrNextraConfig, themeConfig) =>
       locales,
       defaultLocale: nextConfig.i18n?.defaultLocale || DEFAULT_LOCALE,
       pageMapCache,
-      newNextLinkBehavior: nextConfig.experimental?.newNextLinkBehavior
     }
 
     // Check if there's a theme provided

@@ -9,28 +9,13 @@ import {
   MARKDOWN_EXTENSION_REGEX,
   OFFICIAL_THEMES
 } from './constants'
-import { existsSync, PAGES_DIR } from './file-system'
+import { PAGES_DIR } from './file-system'
 import { resolvePageMap } from './page-map'
 import { collectFiles, collectMdx } from './plugin'
 import type { LoaderOptions, MdxPath, PageOpts } from './types'
 import { hashFnv32a, pageTitleFromFilename, parseFileName } from './utils'
 
 const IS_WEB_CONTAINER = !!process.versions.webcontainer
-
-const APP_MDX_PATH = path.join(PAGES_DIR, '_app.mdx')
-
-const UNDERSCORE_APP_FILENAME: string =
-  fs
-    .readdirSync(PAGES_DIR)
-    .find(fileName => /^_app\.(js|jsx|ts|tsx|md)$/.test(fileName)) || ''
-
-const HAS_UNDERSCORE_APP_MDX_FILE = existsSync(APP_MDX_PATH)
-
-if (UNDERSCORE_APP_FILENAME) {
-  console.warn(
-    `[nextra] Found "${UNDERSCORE_APP_FILENAME}" file, refactor it to "_app.mdx" for better performance.`
-  )
-}
 
 const initGitRepo = (async () => {
   if (!IS_WEB_CONTAINER) {
@@ -82,7 +67,6 @@ async function loader(
     readingTime: _readingTime,
     mdxOptions,
     pageMapCache,
-    newNextLinkBehavior,
     transform,
     transformPageOpts,
     codeHighlight
@@ -254,10 +238,7 @@ async function loader(
     hasJsxInH1,
     timestamp,
     pageMap,
-    ...(!HAS_UNDERSCORE_APP_MDX_FILE && {
-      flexsearch,
-      newNextLinkBehavior // todo: remove in v3
-    }),
+    flexsearch,
     readingTime,
     title: fallbackTitle
   }
@@ -281,24 +262,6 @@ ${themeConfigImport}
 ${katexCssImport}
 ${cssImport}`
 
-  if (pageNextRoute === '/_app') {
-    return `${pageImports}
-${finalResult}
-
-const __nextra_internal__ = globalThis[Symbol.for('__nextra_internal__')] ||= Object.create(null)
-__nextra_internal__.Layout = __nextra_layout
-__nextra_internal__.pageMap = ${JSON.stringify(pageOpts.pageMap)}
-__nextra_internal__.flexsearch = ${JSON.stringify(flexsearch)}
-${
-  themeConfigImport
-    ? '__nextra_internal__.themeConfig = __nextra_themeConfig'
-    : ''
-}`
-  }
-  if (HAS_UNDERSCORE_APP_MDX_FILE) {
-    delete pageOpts.pageMap
-  }
-
   const stringifiedPageOpts = JSON.stringify(pageOpts)
   const stringifiedChecksum = IS_PRODUCTION
     ? "''"
@@ -314,18 +277,14 @@ ${
     .join(',')
 
   return `import { setupNextraPage } from 'nextra/setup-page'
-${HAS_UNDERSCORE_APP_MDX_FILE ? '' : pageImports}
+${pageImports}
 
 const __nextraPageOptions = {
   MDXContent,
   pageOpts: ${stringifiedPageOpts},
   pageNextRoute: ${JSON.stringify(pageNextRoute)},
-  ${
-    HAS_UNDERSCORE_APP_MDX_FILE
-      ? ''
-      : 'nextraLayout: __nextra_layout,' +
-        (themeConfigImport && 'themeConfig: __nextra_themeConfig')
-  }
+  nextraLayout: __nextra_layout,
+  ${themeConfigImport && 'themeConfig: __nextra_themeConfig'}
 }
 ${
   // Remove the last match of `export default MDXContent` because it can be existed in the raw MDX file
