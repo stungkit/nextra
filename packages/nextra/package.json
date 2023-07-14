@@ -72,9 +72,6 @@
       "ssg": [
         "./dist/ssg.d.ts"
       ],
-      "locales": [
-        "./dist/locales.d.ts"
-      ],
       "icons": [
         "./dist/icons/index.d.ts"
       ],
