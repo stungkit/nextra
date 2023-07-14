@@ -110,6 +110,12 @@ async function loader(
       : context.resourcePath
   ) as MdxPath
 
+  if (mdxPath.includes('/pages/_app.mdx')) {
+    throw new Error(
+      'Nextra v3 no longer supports _app.mdx, use _app.{js,jsx} or _app.{ts,tsx} for TypeScript projects instead.'
+    )
+  }
+
   if (mdxPath.includes('/pages/api/')) {
     console.warn(
       `[nextra] Ignoring ${mdxPath} because it is located in the "pages/api" folder.`

@@ -100,6 +100,7 @@ module.exports = {
       ],
       parserOptions: {
         project: [
+          "examples/*/tsconfig.json",
           'packages/*/tsconfig.json',
           'docs/tsconfig.json',
           'tsconfig.eslint.json'
