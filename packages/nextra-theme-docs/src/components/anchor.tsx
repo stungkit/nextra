@@ -3,7 +3,6 @@ import NextLink from 'next/link'
 import next from 'next/package.json'
 import type { ComponentProps, ReactElement } from 'react'
 import { forwardRef } from 'react'
-import { useConfig } from '../contexts'
 
 export type AnchorProps = Omit<ComponentProps<'a'>, 'ref'> & {
   newWindow?: boolean
@@ -16,8 +15,6 @@ export const Anchor = forwardRef<HTMLAnchorElement, AnchorProps>(function (
   // ref is used in <NavbarMenu />
   forwardedRef
 ): ReactElement {
-  const config = useConfig()
-
   if (newWindow) {
     return (
       <a
