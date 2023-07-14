@@ -1,10 +1,5 @@
-.next/
-out/
-dist/
 pnpm-lock.yaml
 .changeset/*.md
-packages/nextra-theme-blog/style.css
-packages/nextra-theme-docs/style.css
 
 # bellow files are broken since prettier doesn't support MDX2
 examples/swr-site/pages/remote/graphql-eslint/\[\[...slug\]\].mdx
