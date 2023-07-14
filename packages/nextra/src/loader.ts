@@ -1,5 +1,4 @@
 import path from 'node:path'
-import fs from 'graceful-fs'
 import slash from 'slash'
 import type { LoaderContext } from 'webpack'
 import { compileMdx } from './compile'
@@ -252,15 +251,7 @@ async function loader(
   const themeConfigImport = themeConfig
     ? `import __nextra_themeConfig from '${slash(path.resolve(themeConfig))}'`
     : ''
-  const katexCssImport = latex ? "import 'katex/dist/katex.min.css'" : ''
-  const cssImport = OFFICIAL_THEMES.includes(theme)
-    ? `import '${theme}/style.css'`
-    : ''
   const finalResult = transform ? await transform(result, { route }) : result
-  const pageImports = `import __nextra_layout from '${layout}'
-${themeConfigImport}
-${katexCssImport}
-${cssImport}`
 
   const stringifiedPageOpts = JSON.stringify(pageOpts)
   const stringifiedChecksum = IS_PRODUCTION
@@ -277,7 +268,10 @@ ${cssImport}`
     .join(',')
 
   return `import { setupNextraPage } from 'nextra/setup-page'
-${pageImports}
+import __nextra_layout from '${layout}'
+${themeConfigImport}
+${latex ? "import 'katex/dist/katex.min.css'" : ''}
+${OFFICIAL_THEMES.includes(theme) ? `import '${theme}/style.css'` : ''}
 
 const __nextraPageOptions = {
   MDXContent,
