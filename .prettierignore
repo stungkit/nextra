@@ -10,5 +10,5 @@ packages/nextra-theme-docs/style.css
 examples/swr-site/pages/remote/graphql-eslint/\[\[...slug\]\].mdx
 examples/docs/src/pages/themes/docs/index.mdx
 examples/docs/src/pages/get-started.mdx
-examples/swr-site/pages/blog.en-US.mdx
+examples/swr-site/pages/en/blog.mdx
 docs/pages/docs/guide/advanced/latex.mdx

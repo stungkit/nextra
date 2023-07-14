@@ -4,8 +4,8 @@ searchable: false
 
 # Blog
 
-import { getPagesUnderRoute } from 'nextra/context'
 import Link from 'next/link'
+import { getPagesUnderRoute } from 'nextra/context'
 
 {getPagesUnderRoute('/blog').map(page => (
   <div key={page.route}>
