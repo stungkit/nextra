@@ -15,7 +15,6 @@ type MetaFilename = typeof META_FILENAME
 type MarkdownExtension = (typeof MARKDOWN_EXTENSIONS)[number]
 
 export interface LoaderOptions extends NextraConfig {
-  isMetaImport?: boolean
   isPageImport?: boolean
   locales: string[]
   defaultLocale: string

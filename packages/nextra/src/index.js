@@ -113,14 +113,21 @@ const nextra = (themeOrNextraConfig, themeConfig) =>
           },
           {
             // Match dynamic meta files inside pages.
-            test: /_meta(\.[a-z]{2}-[A-Z]{2})?\.js$/,
+            test: /_meta\.js$/,
+            issuer: request => !request,
+            use: [options.defaultLoaders.babel, { loader: 'nextra/loader' }]
+          },
+          {
+            test: /pages\/_app\./,
             issuer: request => !request,
             use: [
               options.defaultLoaders.babel,
               {
                 loader: 'nextra/loader',
                 options: {
-                  isMetaImport: true
+                  theme: nextraLoaderOptions.theme,
+                  themeConfig: nextraLoaderOptions.themeConfig,
+                  pageMapCache: nextraLoaderOptions.pageMapCache
                 }
               }
             ]

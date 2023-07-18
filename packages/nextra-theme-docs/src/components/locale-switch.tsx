@@ -5,11 +5,14 @@ import type { ReactElement } from 'react'
 import type { DocsThemeConfig } from '../constants'
 import { Select } from './select'
 
+const ONE_YEAR = 365 * 24 * 60 * 60 * 1000
+
 interface LocaleSwitchProps {
   options: NonNullable<DocsThemeConfig['i18n']>
   lite?: boolean
   className?: string
 }
+
 
 export function LocaleSwitch({
   options,
@@ -23,7 +26,7 @@ export function LocaleSwitch({
       title="Change language"
       className={className}
       onChange={option => {
-        const date = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)
+        const date = new Date(Date.now() + ONE_YEAR)
         document.cookie = `NEXT_LOCALE=${
           option.key
         }; expires=${date.toUTCString()}; path=/`

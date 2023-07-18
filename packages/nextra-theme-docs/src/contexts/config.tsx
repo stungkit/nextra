@@ -72,15 +72,16 @@ export const ConfigProvider = ({
   // Merge only on first load
   theme ||= {
     ...DEFAULT_THEME,
-    ...Object.fromEntries(
-      Object.entries(themeConfig).map(([key, value]) => [
-        key,
-        value && typeof value === 'object' && DEEP_OBJECT_KEYS.includes(key)
-          ? // @ts-expect-error -- key has always object value
-            { ...DEFAULT_THEME[key], ...value }
-          : value
-      ])
-    )
+    ...(themeConfig &&
+      Object.fromEntries(
+        Object.entries(themeConfig).map(([key, value]) => [
+          key,
+          value && typeof value === 'object' && DEEP_OBJECT_KEYS.includes(key)
+            ? // @ts-expect-error -- key has always object value
+              { ...DEFAULT_THEME[key], ...value }
+            : value
+        ])
+      ))
   }
   if (process.env.NODE_ENV !== 'production' && !isValidated) {
     try {

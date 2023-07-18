@@ -2,21 +2,16 @@ import path from 'node:path'
 import slash from 'slash'
 import type { LoaderContext } from 'webpack'
 import { compileMdx } from './compile'
-import {
-  CWD,
-  IS_PRODUCTION,
-  MARKDOWN_EXTENSION_REGEX,
-  OFFICIAL_THEMES
-} from './constants'
+import { CWD, IS_PRODUCTION, OFFICIAL_THEMES } from './constants'
 import { PAGES_DIR } from './file-system'
 import { resolvePageMap } from './page-map'
 import { collectFiles, collectMdx } from './plugin'
 import type { LoaderOptions, MdxPath, PageOpts } from './types'
 import { hashFnv32a, pageTitleFromFilename, parseFileName } from './utils'
 
-const IS_WEB_CONTAINER = !!process.versions.webcontainer
-
 const initGitRepo = (async () => {
+  const IS_WEB_CONTAINER = !!process.versions.webcontainer
+
   if (!IS_WEB_CONTAINER) {
     const { Repository } = await import('@napi-rs/simple-git')
     try {
@@ -48,12 +43,11 @@ const initGitRepo = (async () => {
   return {}
 })()
 
-async function loader(
+export async function loader(
   context: LoaderContext<LoaderOptions>,
   source: string
 ): Promise<string> {
   const {
-    isMetaImport = false,
     isPageImport = false,
     theme,
     themeConfig,
@@ -70,13 +64,7 @@ async function loader(
     transformPageOpts,
     codeHighlight
   } = context.getOptions()
-
   context.cacheable(true)
-
-  // _meta.js used as a page.
-  if (isMetaImport) {
-    return 'export default () => null'
-  }
 
   const mdxPath = (
     context._module?.resourceResolveData
@@ -92,6 +80,11 @@ async function loader(
         )
       : context.resourcePath
   ) as MdxPath
+
+  // _meta.js used as a page.
+  if (mdxPath.endsWith('_meta.js')) {
+    return 'export default () => null'
+  }
 
   if (mdxPath.includes('/pages/_app.mdx')) {
     throw new Error(
@@ -110,25 +103,54 @@ async function loader(
     ? pageMapCache.get()!
     : await collectFiles({ dir: PAGES_DIR, locales })
 
+  const isAppFile = mdxPath.includes('/pages/_app.')
+
+  // todo: refactor and remove this
+  if (isAppFile) {
+    fileMap[mdxPath] = { kind: 'MdxPage', name: '', route: '' }
+  }
+  const existsInFileMap = Boolean(fileMap[mdxPath])
+
   // mdx is imported but is outside the `pages` directory
-  if (!fileMap[mdxPath]) {
+  if (!existsInFileMap) {
     fileMap[mdxPath] = await collectMdx(mdxPath)
-    if (!IS_PRODUCTION) {
-      context.addMissingDependency(mdxPath)
-    }
   }
 
-  const { locale } = parseFileName(mdxPath)
+  const { route, pageMap, dynamicMetaItems } = resolvePageMap({
+    filePath: mdxPath,
+    fileMap,
+    defaultLocale,
+    items
+  })
   const isLocalTheme = theme.startsWith('.') || theme.startsWith('/')
-  const pageNextRoute =
-    '/' +
-    slash(path.relative(PAGES_DIR, mdxPath))
-      // Remove the `mdx?` extension
-      .replace(MARKDOWN_EXTENSION_REGEX, '')
-      // Remove the `*/index` suffix
-      .replace(/\/index$/, '')
-      // Remove the only `index` route
-      .replace(/^index$/, '')
+  if (isAppFile) {
+    // Relative path instead of a package name
+    const layout = isLocalTheme ? slash(path.resolve(theme)) : theme
+    const themeConfigImport = themeConfig
+      ? `import __nextra_themeConfig from '${slash(path.resolve(themeConfig))}'`
+      : ''
+    const katexCssImport = latex ? "import 'katex/dist/katex.min.css'" : ''
+    const cssImport = OFFICIAL_THEMES.includes(theme)
+      ? `import '${theme}/style.css'`
+      : ''
+    const pageImports = `import __nextra_layout from '${layout}'
+${themeConfigImport}
+${katexCssImport}
+${cssImport}`
+    return `${pageImports}
+${source}
+
+const __nextra_internal__ = globalThis[Symbol.for('__nextra_internal__')] ||= Object.create(null)
+__nextra_internal__.Layout = __nextra_layout
+__nextra_internal__.pageMap = ${JSON.stringify(pageMap)}
+__nextra_internal__.flexsearch = ${JSON.stringify(flexsearch)}
+${
+  themeConfigImport
+    ? '__nextra_internal__.themeConfig = __nextra_themeConfig'
+    : ''
+}`
+  }
+  const { locale } = parseFileName(mdxPath)
 
   if (!IS_PRODUCTION) {
     for (const [filePath, file] of Object.entries(fileMap)) {
@@ -147,6 +169,9 @@ async function loader(
     // Add theme config as a dependency
     if (themeConfig) {
       context.addDependency(path.resolve(themeConfig))
+    }
+    if (!existsInFileMap) {
+      context.addMissingDependency(mdxPath)
     }
   }
 
@@ -174,7 +199,7 @@ async function loader(
       flexsearch,
       latex,
       codeHighlight,
-      route: pageNextRoute,
+      route,
       locale
     },
     {
@@ -188,13 +213,6 @@ async function loader(
   if (!isPageImport) {
     return result
   }
-
-  const { route, pageMap, dynamicMetaItems } = resolvePageMap({
-    filePath: mdxPath,
-    fileMap,
-    defaultLocale,
-    items
-  })
 
   // Logic for resolving the page title (used for search and as fallback):
   // 1. If the frontMatter has a title, use it.
@@ -210,7 +228,7 @@ async function loader(
       indexKey: searchIndexKey,
       title: fallbackTitle,
       data: structurizedData,
-      route: pageNextRoute
+      route
     }
   }
 
@@ -226,9 +244,6 @@ async function loader(
     }
   }
 
-  // Relative path instead of a package name
-  const layout = isLocalTheme ? slash(path.resolve(theme)) : theme
-
   let pageOpts: Partial<PageOpts> = {
     filePath: slash(path.relative(CWD, mdxPath)),
     route,
@@ -236,8 +251,6 @@ async function loader(
     headings,
     hasJsxInH1,
     timestamp,
-    pageMap,
-    flexsearch,
     readingTime,
     title: fallbackTitle
   }
@@ -248,9 +261,6 @@ async function loader(
     // necessary to include them in the bundle.
     pageOpts = transformPageOpts(pageOpts as any)
   }
-  const themeConfigImport = themeConfig
-    ? `import __nextra_themeConfig from '${slash(path.resolve(themeConfig))}'`
-    : ''
   const finalResult = transform ? await transform(result, { route }) : result
 
   const stringifiedPageOpts = JSON.stringify(pageOpts)
@@ -268,17 +278,10 @@ async function loader(
     .join(',')
 
   return `import { setupNextraPage } from 'nextra/setup-page'
-import __nextra_layout from '${layout}'
-${themeConfigImport}
-${latex ? "import 'katex/dist/katex.min.css'" : ''}
-${OFFICIAL_THEMES.includes(theme) ? `import '${theme}/style.css'` : ''}
-
 const __nextraPageOptions = {
   MDXContent,
   pageOpts: ${stringifiedPageOpts},
-  pageNextRoute: ${JSON.stringify(pageNextRoute)},
-  nextraLayout: __nextra_layout,
-  ${themeConfigImport && 'themeConfig: __nextra_themeConfig'}
+  pageNextRoute: ${JSON.stringify(route)}
 }
 ${
   // Remove the last match of `export default MDXContent` because it can be existed in the raw MDX file
@@ -291,14 +294,4 @@ if (process.env.NODE_ENV !== 'production') {
 if (typeof window === 'undefined') __nextraPageOptions.dynamicMetaModules = [${dynamicMetaModules}]
 
 export default setupNextraPage(__nextraPageOptions)`
-}
-
-export default function syncLoader(
-  this: LoaderContext<LoaderOptions>,
-  source: string,
-  callback: (err?: null | Error, content?: string | Buffer) => void
-): void {
-  loader(this, source)
-    .then(result => callback(null, result))
-    .catch(err => callback(err))
 }

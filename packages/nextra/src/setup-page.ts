@@ -16,8 +16,7 @@ import type {
   Folder,
   NextraInternalGlobal,
   PageMapItem,
-  PageOpts,
-  ThemeConfig
+  PageOpts
 } from './types'
 import { normalizePageRoute, pageTitleFromFilename } from './utils'
 
@@ -103,8 +102,6 @@ let cachedResolvedPageMap: PageMapItem[]
 export function setupNextraPage({
   pageNextRoute,
   pageOpts,
-  nextraLayout,
-  themeConfig,
   MDXContent,
   hot,
   pageOptsChecksum,
@@ -112,8 +109,6 @@ export function setupNextraPage({
 }: {
   pageNextRoute: string
   pageOpts: PageOpts
-  nextraLayout: FC
-  themeConfig: ThemeConfig
   MDXContent: FC
   hot?: __WebpackModuleApi.Hot
   pageOptsChecksum?: string
@@ -154,25 +149,18 @@ export function setupNextraPage({
   const __nextra_internal__ = ((globalThis as NextraInternalGlobal)[
     NEXTRA_INTERNAL
   ] ||= Object.create(null))
-
-  if (pageOpts.pageMap) {
-    __nextra_internal__.pageMap = pageOpts.pageMap
-    __nextra_internal__.Layout = nextraLayout
-  } else {
-    // while using `_app.md/mdx` pageMap will be injected in _app file to boost compilation time,
-    // and reduce bundle size
-    pageOpts = {
-      ...pageOpts,
-      pageMap: __nextra_internal__.pageMap,
-      flexsearch: __nextra_internal__.flexsearch
-    }
-    themeConfig = __nextra_internal__.themeConfig
-  }
-
+  // while using `_app.md/mdx` pageMap will be injected in _app file to boost compilation time,
+  // and reduce bundle size
   pageOpts = {
     // @ts-ignore ignore "'frontMatter' is specified more than once" error to treeshake empty object `{}` for each compiled page
     frontMatter: {},
-    ...pageOpts
+    ...pageOpts,
+    pageMap: __nextra_internal__.pageMap,
+    // .find(
+    //   (item): item is Folder =>
+    //     item.kind === 'Folder' && item.name === pageNextRoute.split('/')[1]
+    // )!.children,
+    flexsearch: __nextra_internal__.flexsearch
   }
 
   __nextra_internal__.route = pageOpts.route
@@ -180,7 +168,7 @@ export function setupNextraPage({
   __nextra_internal__.context[pageNextRoute] = {
     Content: MDXContent,
     pageOpts,
-    themeConfig
+    themeConfig: __nextra_internal__.themeConfig
   }
 
   if (process.env.NODE_ENV !== 'production' && hot) {

@@ -8,10 +8,14 @@
  *
  * @param {string} code
  */
-module.exports = function (code) {
+module.exports = async function (code) {
   const callback = this.async()
-  // Note that `import()` caches, so this should be fast enough.
-  import('./dist/loader.mjs').then(mod =>
-    mod.default.call(this, code, callback)
-  )
+  try {
+    // Note that `import()` caches, so this should be fast enough.
+    const { loader } = await import('./dist/loader.mjs')
+    const result = await loader(this, code)
+    callback(null, result)
+  } catch (error) {
+    callback(error)
+  }
 }
