@@ -13,7 +13,6 @@ interface LocaleSwitchProps {
   className?: string
 }
 
-
 export function LocaleSwitch({
   options,
   lite,
