@@ -35,7 +35,7 @@ export const ClientWrapper: MDXWrapper = ({
         >
           {themeContext.toc && (
             <TOC
-              toc={themeConfig.toc.float ? toc : []}
+              toc={toc}
               filePath={metadata.filePath}
               pageTitle={metadata.title}
             />
