@@ -1,5 +1,80 @@
 # nextra-theme-docs
 
+## 4.2.10
+
+### Patch Changes
+
+- 5c22495: - add `Navbar.align` prop to align navigation links to the specified side. (default `'right'`)
+  - fix hidden nav links when specified with `type: 'page', href: '...'` in `_meta` files
+- Updated dependencies [5c22495]
+  - nextra@4.2.10
+
+## 4.2.9
+
+### Patch Changes
+
+- 31534cb: add `Navbar.className` prop
+  - nextra@4.2.9
+
+## 4.2.8
+
+### Patch Changes
+
+- e610d1d: fix type of `Navbar.children`, should be `ReactNode`, not `ReactElement`
+  - nextra@4.2.8
+
+## 4.2.7
+
+### Patch Changes
+
+- 9b5eea6: allow change `nextThemes.forcedTheme` prop
+  - nextra@4.2.7
+
+## 4.2.6
+
+### Patch Changes
+
+- Updated dependencies [a7906d1]
+  - nextra@4.2.6
+
+## 4.2.5
+
+### Patch Changes
+
+- Updated dependencies [e6c3050]
+  - nextra@4.2.5
+
+## 4.2.4
+
+### Patch Changes
+
+- Updated dependencies [b46d831]
+- Updated dependencies [7949e28]
+  - nextra@4.2.4
+
+## 4.2.3
+
+### Patch Changes
+
+- ca67a19: remove requirement `page.{jsx,tsx}` pages to have exported `metadata` object
+- Updated dependencies [ca67a19]
+  - nextra@4.2.3
+
+## 4.2.2
+
+### Patch Changes
+
+- Updated dependencies [dd32eca]
+  - nextra@4.2.2
+
+## 4.2.1
+
+### Patch Changes
+
+- 5c51b49: fix allow configuring `theme.toc` in `_meta` file when `toc.float` is set to `false` for pages with `type: 'page'`
+- 996b0b5: fix: show `Scroll to top` link `toc.backToTop` when `toc.float: false` is set
+  - nextra@4.2.1
+
 ## 4.2.0
 
 ### Minor Changes

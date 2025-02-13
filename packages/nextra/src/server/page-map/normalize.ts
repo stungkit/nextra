@@ -16,6 +16,21 @@ type ParsedFolder = Folder & {
   frontMatter?: FrontMatter
 }
 
+function titlize(item: Folder | MdxFile, meta: MetaRecord): string {
+  const titleFromMeta = meta[item.name]?.title
+  if (titleFromMeta) return titleFromMeta
+  if ('frontMatter' in item && item.frontMatter) {
+    const titleFromFrontMatter =
+      item.frontMatter.sidebarTitle || item.frontMatter.title
+
+    if (titleFromFrontMatter) return titleFromFrontMatter
+  }
+  // We use `title` package for capitalize folders without index page
+  return pageTitleFromFilename(item.name)
+}
+
+type MetaRecord = Record<string, Record<string, any>>
+
 function sortFolder(pageMap: PageMapItem[] | Folder) {
   const newChildren: (Folder | MdxFile)[] = []
 
@@ -54,10 +69,6 @@ function sortFolder(pageMap: PageMapItem[] | Folder) {
     } else {
       newChildren.push(item)
     }
-  }
-  if (folder.name && !folder.frontMatter?.title) {
-    // @ts-expect-error -- we use title for capitalize folders without index page
-    folder.title = pageTitleFromFilename(folder.name)
   }
 
   const metaKeys = Object.keys(meta)
@@ -130,6 +141,22 @@ The field key "${metaKey}" in \`_meta\` file refers to a page that cannot be fou
     items.unshift({ data: meta })
   }
 
-  const result = isFolder ? { ...folder, children: items } : items
+  const itemsWithTitle = items.map(item => {
+    const isSeparator = 'type' in item && item.type === 'separator'
+    if ('name' in item && !isSeparator) {
+      return {
+        ...item,
+        title: titlize(item, meta)
+      }
+    }
+    return item
+  })
+
+  const result = isFolder
+    ? {
+        ...folder,
+        children: itemsWithTitle
+      }
+    : itemsWithTitle
   return result
 }

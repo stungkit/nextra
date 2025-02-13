@@ -1,6 +1,6 @@
 import type { ProcessorOptions } from '@mdx-js/mdx'
 import type { MathJax3Config } from 'better-react-mathjax'
-import type { ReactElement } from 'react'
+import type { ReactElement, ReactNode } from 'react'
 import { isValidElement } from 'react'
 import type { Options as RehypeKatexOptions } from 'rehype-katex'
 import type { Options as RehypePrettyCodeOptions } from 'rehype-pretty-code'
@@ -72,6 +72,12 @@ export const element = z.custom<ReactElement<Record<string, unknown>>>(
   isValidElement,
   { message: 'Must be React.ReactElement' }
 )
+export const reactNode = z.custom<ReactNode>(
+  data =>
+    isValidElement(data) ||
+    (Array.isArray(data) && data.every(value => isValidElement(value))),
+  { message: 'Must be React.ReactNode' }
+)
 
 export const stringOrElement = z.union([z.string(), element])
 
@@ -95,7 +101,7 @@ const linkSchema = z.strictObject({
   href: z.string()
 })
 
-const separatorItemSchema = z.strictObject({
+export const separatorItemSchema = z.strictObject({
   type: z.literal('separator'),
   title
 })
@@ -118,7 +124,8 @@ export const menuSchema = z.strictObject({
       obj[key].title ||= pageTitleFromFilename(key)
     }
     return obj
-  })
+  }),
+  display: z.enum(['normal', 'hidden']).optional()
 })
 
 export const itemSchema = z.strictObject({
@@ -137,7 +144,10 @@ export const itemSchema = z.strictObject({
 export const metaSchema = z.union([
   stringOrElement.transform(transformTitle),
   itemSchema,
-  linkSchema.extend({ type: z.enum(['page', 'doc']).optional() }),
+  linkSchema.extend({
+    type: z.enum(['page', 'doc']).optional(),
+    display: z.enum(['normal', 'hidden']).optional()
+  }),
   separatorItemSchema,
   menuSchema
 ])

@@ -1,5 +1,51 @@
 # nextra
 
+## 4.2.10
+
+### Patch Changes
+
+- 5c22495: - add `Navbar.align` prop to align navigation links to the specified side. (default `'right'`)
+  - fix hidden nav links when specified with `type: 'page', href: '...'` in `_meta` files
+
+## 4.2.9
+
+## 4.2.8
+
+## 4.2.7
+
+## 4.2.6
+
+### Patch Changes
+
+- a7906d1: use `decodeURIComponent` instead `decodeURI` to properly decode `&` character
+
+## 4.2.5
+
+### Patch Changes
+
+- e6c3050: add `display: 'normal' | 'hidden'` for `_meta` item `type: 'menu'`
+
+## 4.2.4
+
+### Patch Changes
+
+- b46d831: fix `Could not parse expression with acorn` for inline math code in `development` mode without turbopack enabled
+- 7949e28: move setting `pageMap` items' `title` property from `normalizePages` to `sortFolder`
+
+## 4.2.3
+
+### Patch Changes
+
+- ca67a19: remove requirement `page.{jsx,tsx}` pages to have exported `metadata` object
+
+## 4.2.2
+
+### Patch Changes
+
+- dd32eca: fix route group within `app/` dir crash the `convertToPageMap`
+
+## 4.2.1
+
 ## 4.2.0
 
 ### Patch Changes

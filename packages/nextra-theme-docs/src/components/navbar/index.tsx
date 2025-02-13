@@ -3,20 +3,22 @@ import cn from 'clsx'
 import NextLink from 'next/link'
 import { Anchor } from 'nextra/components'
 import { DiscordIcon, GitHubIcon } from 'nextra/icons'
-import { element } from 'nextra/schemas'
+import { element, reactNode } from 'nextra/schemas'
 import type { FC } from 'react'
 import { z } from 'zod'
 import { fromZodError } from 'zod-validation-error'
 import { ClientNavbar } from './index.client'
 
 const propsSchema = z.strictObject({
-  children: element.optional(),
+  children: reactNode.optional(),
   logoLink: z.union([z.string(), z.boolean()]).default(true),
   logo: element,
   projectLink: z.string().optional(),
   projectIcon: element.default(<GitHubIcon height="24" />),
   chatLink: z.string().optional(),
-  chatIcon: element.default(<DiscordIcon width="24" />)
+  chatIcon: element.default(<DiscordIcon width="24" />),
+  className: z.string().optional(),
+  align: z.enum(['left', 'right']).default('right')
 })
 
 type NavbarProps = z.input<typeof propsSchema>
@@ -33,8 +35,16 @@ export const Navbar: FC<NavbarProps> = props => {
     projectLink,
     projectIcon,
     chatLink,
-    chatIcon
+    chatIcon,
+    className,
+    align
   } = data
+
+  const logoClass = cn(
+    'x:flex x:items-center',
+    align === 'right' && 'x:me-auto'
+  )
+
   return (
     <header
       className={cn(
@@ -52,19 +62,26 @@ export const Navbar: FC<NavbarProps> = props => {
       />
       <nav
         style={{ height: 'var(--nextra-navbar-height)' }}
-        className="x:mx-auto x:flex x:max-w-(--nextra-content-width) x:items-center x:justify-end x:gap-4 x:pl-[max(env(safe-area-inset-left),1.5rem)] x:pr-[max(env(safe-area-inset-right),1.5rem)]"
+        className={cn(
+          'x:mx-auto x:flex x:max-w-(--nextra-content-width) x:items-center x:gap-4 x:pl-[max(env(safe-area-inset-left),1.5rem)] x:pr-[max(env(safe-area-inset-right),1.5rem)]',
+          align === 'right' && 'x:justify-end',
+          className
+        )}
       >
         {logoLink ? (
           <NextLink
             href={typeof logoLink === 'string' ? logoLink : '/'}
-            className="x:transition-opacity x:focus-visible:nextra-focus x:flex x:items-center x:hover:opacity-75 x:me-auto"
+            className={cn(
+              logoClass,
+              'x:transition-opacity x:focus-visible:nextra-focus x:hover:opacity-75'
+            )}
           >
             {logo}
           </NextLink>
         ) : (
-          <div className="x:flex x:items-center x:me-auto">{logo}</div>
+          <div className={logoClass}>{logo}</div>
         )}
-        <ClientNavbar>
+        <ClientNavbar className={align === 'left' ? 'x:me-auto' : ''}>
           {projectLink && <Anchor href={projectLink}>{projectIcon}</Anchor>}
           {chatLink && <Anchor href={chatLink}>{chatIcon}</Anchor>}
           {children}
